@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "@/lib/auth/getServerSession";
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,11 +16,11 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  try {
-    const session = await getServerSession(req);
-    return res.status(200).json(session || null);
-  } catch (error) {
-    console.error("Error obteniendo sesión:", error);
-    return res.status(500).json({ error: "Error interno" });
-  }
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  const redirectUri = `${process.env.BETTER_AUTH_BASE_URL}/api/auth/callback/github`;
+  const scope = "user:email";
+
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
+
+  res.redirect(githubAuthUrl);
 }
