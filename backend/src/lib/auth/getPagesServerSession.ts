@@ -1,5 +1,5 @@
 // src/lib/auth/getServerSession.ts
-import { auth } from "../auth";
+import { auth } from "./auth";
 import { NextRequest } from "next/server";
 import { NextApiRequest } from "next";
 import type { Role } from "@prisma/client";  // Importa el enum Role

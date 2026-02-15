@@ -1,4 +1,4 @@
-import { auth } from "../auth";
+import { auth } from "./auth";
 import { NextApiRequest } from "next";
 import { prisma } from "@/lib/db/prisma";
 import type { Role } from "@prisma/client";
