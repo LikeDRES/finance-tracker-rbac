@@ -1,22 +1,23 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export function runCors(req: NextApiRequest, res: NextApiResponse) {
-  const origin = req.headers.origin
+  const requestOrigin = req.headers.origin // ← Cambiado de 'origin' a 'requestOrigin'
   
-  // Lista de orígenes permitidos (incluye la URL exacta del frontend)
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'https://finance-tracker-rbac-euu2.vercel.app',
-  process.env.FRONTEND_URL,
-].filter(Boolean) as string[]
+  // Lista de orígenes permitidos
+  const allowedOrigins: string[] = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://finance-tracker-rbac-euu2.vercel.app',
+    process.env.FRONTEND_URL || '',
+  ].filter(Boolean)
 
-  console.log("🌐 CORS - Origin recibido:", origin)
+  console.log("🌐 CORS - Origin recibido:", requestOrigin)
   console.log("🌐 CORS - Orígenes permitidos:", allowedOrigins)
 
-  if (origin && allowedOrigins.includes(origin)) {
+  // Verificar si el origen está permitido
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
     console.log("🌐 CORS - Origen permitido, agregando headers")
-    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin)
     res.setHeader('Access-Control-Allow-Credentials', 'true')
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     res.setHeader(
@@ -27,6 +28,7 @@ const allowedOrigins = [
     console.log("🌐 CORS - Origen NO permitido o ausente")
   }
 
+  // Manejar preflight requests
   if (req.method === 'OPTIONS') {
     console.log("🌐 CORS - Preflight OPTIONS, respondiendo 200")
     res.status(200).end()
