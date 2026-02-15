@@ -16,11 +16,24 @@ export function getAuth() {
       github: {
         clientId: process.env.GITHUB_CLIENT_ID!,
         clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+        // AGREGADO: redirectURI explícito
+        redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/github`,
       },
     },
 
     secret: process.env.BETTER_AUTH_SECRET!,
     baseURL: process.env.BETTER_AUTH_URL!,
+
+    // AGREGADO: Configuración de orígenes confiables
+    trustedOrigins: [process.env.FRONTEND_URL!],
+
+    // AGREGADO: Configuración CORS explícita
+    cors: {
+      origin: [process.env.FRONTEND_URL!],
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    },
 
     session: {
       modelName: "session",
@@ -41,7 +54,7 @@ export function getAuth() {
         image: "image",
         createdAt: "createdAt",
         updatedAt: "updatedAt",
-        role: "role", // 🔥 AQUÍ sí va
+        role: "role",
       },
     },
   })

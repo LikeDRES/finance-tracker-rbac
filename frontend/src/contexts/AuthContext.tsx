@@ -28,54 +28,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  /**
-   * 🔎 Verifica sesión usando Better Auth client
-   */
- const checkSession = useCallback(async () => {
-  try {
-    const { data } = await authClient.getSession()
+  const checkSession = useCallback(async () => {
+    try {
+      const { data } = await authClient.getSession()
 
-    if (data?.user) {
-      const userWithRole = data.user as typeof data.user & {
-        role: "ADMIN" | "USER"
+      if (data?.user) {
+        const userWithRole = data.user as typeof data.user & {
+          role: "ADMIN" | "USER"
+        }
+
+        setUser({
+          id: userWithRole.id,
+          name: userWithRole.name,
+          email: userWithRole.email,
+          image: userWithRole.image ?? null,
+          role: userWithRole.role,
+        })
+      } else {
+        setUser(null)
       }
-
-      setUser({
-        id: userWithRole.id,
-        name: userWithRole.name,
-        email: userWithRole.email,
-        image: userWithRole.image ?? null,
-        role: userWithRole.role,
-      })
-    } else {
+    } catch (error) {
+      console.error("Error checking session:", error)
       setUser(null)
+    } finally {
+      setIsLoading(false)
     }
-  } catch (error) {
-    console.error("Error checking session:", error)
-    setUser(null)
-  } finally {
-    setIsLoading(false)
-  }
-}, [])
+  }, [])
 
-  /**
-   * 🔐 Login
-   * Redirige al backend directamente
-   */
+  useEffect(() => {
+    checkSession()
+  }, [checkSession])
+
   const signIn = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-in/github`
   }
 
-  /**
-   * 🚪 Logout usando Better Auth client
-   */
   const signOut = async () => {
     try {
       await authClient.signOut()
-
       setUser(null)
       toast.success("Sesión cerrada correctamente")
-
       router.push("/login")
       router.refresh()
     } catch (error) {
@@ -84,9 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  /**
-   * 🔄 Permite refrescar sesión manualmente
-   */
   const refreshSession = async () => {
     setIsLoading(true)
     await checkSession()
