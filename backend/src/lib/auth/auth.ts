@@ -1,73 +1,50 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { prisma } from "../../../prisma/client";
+import { betterAuth } from "better-auth"
+import { prismaAdapter } from "@better-auth/prisma-adapter"
+import { prisma } from "../../../prisma/client"
 
-export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "postgresql", 
-  }),
+let _auth: ReturnType<typeof betterAuth> | null = null
 
-  emailAndPassword: {
-    enabled: true,
-  },
+export function getAuth() {
+  if (_auth) return _auth
 
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      redirectUri: `${process.env.BETTER_AUTH_BASE_URL}/api/auth/callback/github`,
+  _auth = betterAuth({
+    database: prismaAdapter(prisma, {
+      provider: "postgresql",
+    }),
+
+    socialProviders: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID!,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      },
     },
-  },
 
-  secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: process.env.BETTER_AUTH_URL || process.env.BETTER_AUTH_BASE_URL,
-  
-  trustedOrigins: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    'https://finance-tracker-rbac-euu2.vercel.app',
-    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-  ],
+    secret: process.env.BETTER_AUTH_SECRET!,
+    baseURL: process.env.BETTER_AUTH_URL!,
 
-  cors: {
-    origin: [
-      "http://localhost:3000", 
-      "http://localhost:3001",
-      "https://finance-tracker-rbac-euu2.vercel.app",
-      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Origin", "Accept"],
-    exposedHeaders: ["set-cookie"],
-  },
-
-  ...(process.env.NODE_ENV === "development" && {
-    advanced: {
-      disableOriginCheck: true,
+    session: {
+      modelName: "session",
+      fields: {
+        token: "token",
+        userId: "userId",
+        expiresAt: "expiresAt",
+      },
     },
-  }),
 
-  session: {
-    modelName: "session",
-    fields: {
-      token: "token",
-      userId: "userId",
-      expiresAt: "expiresAt",
+    user: {
+      modelName: "user",
+      fields: {
+        id: "id",
+        email: "email",
+        name: "name",
+        emailVerified: "emailVerified",
+        image: "image",
+        createdAt: "createdAt",
+        updatedAt: "updatedAt",
+        role: "role",
+      },
     },
-  },
+  })
 
-  user: {
-    modelName: "user",
-    fields: {
-      id: "id",
-      email: "email",
-      name: "name",
-      emailVerified: "emailVerified",
-      image: "image",
-      createdAt: "createdAt",
-      updatedAt: "updatedAt",
-      role: "role",
-    },
-  },
-});
+  return _auth
+}
