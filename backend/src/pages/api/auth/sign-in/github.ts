@@ -5,7 +5,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   // Headers CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://finance-tracker-rbac-vjdu.vercel.app');
+  res.setHeader('Access-Control-Allow-Origin', 'https://finance-tracker-rbac-euu2.vercel.app');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {

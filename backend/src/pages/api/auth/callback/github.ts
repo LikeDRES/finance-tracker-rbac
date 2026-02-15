@@ -8,7 +8,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   // Headers CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://finance-tracker-rbac-vjdu.vercel.app');
+  res.setHeader('Access-Control-Allow-Origin', 'https://finance-tracker-rbac-euu2.vercel.app');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
@@ -120,12 +120,12 @@ export default async function handler(
     }));
 
     // 7. Redirigir al frontend
-    const frontendUrl = 'https://finance-tracker-rbac-vjdu.vercel.app';
+    const frontendUrl = 'https://finance-tracker-rbac-euu2.vercel.app';
     res.redirect(`${frontendUrl}/movements`);
 
   } catch (error) {
     console.error("Error en callback de GitHub:", error);
-    const frontendUrl = 'https://finance-tracker-rbac-vjdu.vercel.app';
+    const frontendUrl = 'https://finance-tracker-rbac-euu2.vercel.app';
     res.redirect(`${frontendUrl}/login?error=auth_failed`);
   }
 }
