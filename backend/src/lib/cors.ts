@@ -1,18 +1,16 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
-// Configuración CORS
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  process.env.FRONTEND_URL, // ← Se configurará después
+  process.env.FRONTEND_URL, // ← La URL del frontend en producción
 ].filter(Boolean)
 
 export function runCors(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin
 
-  // Verificar si el origen está permitido
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Access-Control-Allow-Credentials', 'true')
@@ -23,7 +21,6 @@ export function runCors(req: NextApiRequest, res: NextApiResponse) {
     )
   }
 
-  // Manejar preflight requests
   if (req.method === 'OPTIONS') {
     res.status(200).end()
     return true
