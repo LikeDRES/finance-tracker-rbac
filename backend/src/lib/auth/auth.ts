@@ -25,7 +25,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://finance-tracker-rbac-vjdu.vercel.app",
+    'https://finance-tracker-rbac-euu2.vercel.app',
     ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
   ],
 
