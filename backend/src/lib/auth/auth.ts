@@ -20,7 +20,7 @@ export const auth = betterAuth({
   },
 
   secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: process.env.BETTER_AUTH_BASE_URL,
+  baseURL: process.env.BETTER_AUTH_URL || process.env.BETTER_AUTH_BASE_URL,
   
   trustedOrigins: [
     "http://localhost:3000",
@@ -33,7 +33,7 @@ export const auth = betterAuth({
     origin: [
       "http://localhost:3000", 
       "http://localhost:3001",
-      "https://finance-tracker-rbac-vjdu.vercel.app",
+      "https://finance-tracker-rbac-euu2.vercel.app",
       ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
     ],
     credentials: true,
