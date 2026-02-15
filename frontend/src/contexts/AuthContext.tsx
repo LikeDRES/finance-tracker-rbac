@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { authClient } from "@/lib/auth-client"
 
 interface User {
   id: string
@@ -28,69 +29,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   /**
-   * 🔎 Verifica sesión contra tu API local (mismo dominio)
+   * 🔎 Verifica sesión usando Better Auth client
    */
-  const checkSession = useCallback(async () => {
-    try {
-      const res = await fetch("/api/auth/session", {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
+ const checkSession = useCallback(async () => {
+  try {
+    const { data } = await authClient.getSession()
+
+    if (data?.user) {
+      const userWithRole = data.user as typeof data.user & {
+        role: "ADMIN" | "USER"
+      }
+
+      setUser({
+        id: userWithRole.id,
+        name: userWithRole.name,
+        email: userWithRole.email,
+        image: userWithRole.image ?? null,
+        role: userWithRole.role,
       })
-
-      if (!res.ok) {
-        setUser(null)
-        return
-      }
-
-      const session = await res.json()
-
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-          image: session.user.image ?? null,
-          role: session.user.role, // ❗ no forzar ADMIN
-        })
-      } else {
-        setUser(null)
-      }
-    } catch (error) {
-      console.error("Error checking session:", error)
+    } else {
       setUser(null)
-    } finally {
-      setIsLoading(false)
     }
-  }, [])
-
-  useEffect(() => {
-    checkSession()
-  }, [checkSession])
+  } catch (error) {
+    console.error("Error checking session:", error)
+    setUser(null)
+  } finally {
+    setIsLoading(false)
+  }
+}, [])
 
   /**
-   * 🔐 Login → redirección directa
+   * 🔐 Login
+   * Redirige al backend directamente
    */
   const signIn = () => {
-    window.location.href = "/api/auth/sign-in/github"
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-in/github`
   }
 
   /**
-   * 🚪 Logout limpio
+   * 🚪 Logout usando Better Auth client
    */
   const signOut = async () => {
     try {
-      const res = await fetch("/api/auth/sign-out", {
-        method: "POST",
-        credentials: "include",
-      })
-
-      if (!res.ok) {
-        throw new Error("Logout failed")
-      }
+      await authClient.signOut()
 
       setUser(null)
       toast.success("Sesión cerrada correctamente")
+
       router.push("/login")
       router.refresh()
     } catch (error) {
@@ -100,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   /**
-   * 🔄 Permite refrescar sesión manualmente si lo necesitas
+   * 🔄 Permite refrescar sesión manualmente
    */
   const refreshSession = async () => {
     setIsLoading(true)
