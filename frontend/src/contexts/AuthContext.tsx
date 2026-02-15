@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { authClient } from "@/lib/auth-client"
 
 interface User {
   id: string
@@ -33,18 +32,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkSession = async () => {
     try {
-      const { data: session } = await authClient.getSession()
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const res = await fetch(`${apiUrl}/api/auth/session`, {
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       
-      if (session?.user) {
-        // Obtener el rol del usuario (por defecto ADMIN según tu BD)
-        const userWithRole: User = {
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-          image: session.user.image,
-          role: "ADMIN", // Temporal, puedes obtenerlo de session.user si viene
+      if (res.ok) {
+        const session = await res.json()
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            name: session.user.name,
+            email: session.user.email,
+            image: session.user.image,
+            role: session.user.role || "ADMIN",
+          })
+        } else {
+          setUser(null)
         }
-        setUser(userWithRole)
       } else {
         setUser(null)
       }
@@ -56,24 +64,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // 🔥 CAMBIADO: Redirección directa a GitHub
   const signIn = async () => {
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: `${window.location.origin}/movements`
-    })
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    window.location.href = `${apiUrl}/api/auth/sign-in/github`
   }
 
   const signOut = async () => {
     try {
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            setUser(null)
-            toast.success("Sesión cerrada")
-            router.push("/login")
-          }
-        }
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await fetch(`${apiUrl}/api/auth/sign-out`, {
+        method: "POST",
+        credentials: "include",
       })
+      setUser(null)
+      toast.success("Sesión cerrada")
+      router.push("/login")
     } catch (error) {
       console.error("Error signing out:", error)
       toast.error("Error al cerrar sesión")
