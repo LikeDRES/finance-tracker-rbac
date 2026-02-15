@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/prisma/client"
 import { getServerSession } from "@/lib/auth/getServerSession";
 import { MovementType } from "@prisma/client";
 

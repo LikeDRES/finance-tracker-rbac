@@ -1,6 +1,6 @@
 import { auth } from "./auth";
 import { NextApiRequest } from "next";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/prisma/client"
 import type { Role } from "@prisma/client";
 
 export interface SessionUser {
