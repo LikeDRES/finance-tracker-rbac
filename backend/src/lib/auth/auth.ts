@@ -28,10 +28,15 @@ export const auth = betterAuth({
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []), // ← Solo si existe
   ],
 
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:3001",
+      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []) // ← Solo si existe
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Origin", "Accept"],
@@ -44,9 +49,8 @@ export const auth = betterAuth({
     },
   }),
 
-  // CONFIGURACIÓN EXPLÍCITA DE MODELOS
   session: {
-    modelName: "session", // Nombre del modelo en Prisma (en minúsculas)
+    modelName: "session",
     fields: {
       token: "token",
       userId: "userId",
