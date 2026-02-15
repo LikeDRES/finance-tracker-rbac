@@ -14,7 +14,9 @@
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.5.0-beta.9",
     "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
     "better-auth": "^1.4.18",
+    "cookie": "^1.1.1",
     "json2csv": "^6.0.0-alpha.2",
     "next": "16.1.6",
     "next-swagger-doc": "^0.4.1",
@@ -34,6 +36,8 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie": "^0.6.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.19.33",
     "@types/react": "^19",
@@ -49,6 +53,11 @@
     "supertest": "^7.2.2",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.6",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "prisma": {
+  "seed": "tsx prisma/seed.ts"
   }
 }

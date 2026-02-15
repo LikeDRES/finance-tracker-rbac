@@ -56,7 +56,7 @@ import { z } from "zod";
  *         description: Solo administradores
  */
 
-// Schema para validar query params
+// Schema para query params
 const querySchema = z.object({
   page: z.string().optional().default("1").transform(Number).pipe(z.number().min(1)),
   limit: z.string().optional().default("10").transform(Number).pipe(z.number().min(1).max(100)),
@@ -68,6 +68,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // 🔥 HEADERS CORS
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Manejar preflight OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Verificar autenticación
   const session = await getServerSession(req);
   if (!session) {
@@ -87,13 +98,10 @@ export default async function handler(
   // =========================
   if (req.method === "GET") {
     try {
-      // Validar query params
       const query = querySchema.parse(req.query);
 
-      // Construir filtros
       const where: any = {};
-
-      // Búsqueda por nombre o email
+      
       if (query.search) {
         where.OR = [
           { name: { contains: query.search, mode: "insensitive" } },
@@ -101,15 +109,12 @@ export default async function handler(
         ];
       }
 
-      // Filtro por rol
       if (query.role) {
         where.role = query.role;
       }
 
-      // Calcular total de registros
       const total = await prisma.user.count({ where });
 
-      // Obtener usuarios con paginación
       const users = await prisma.user.findMany({
         where,
         select: {

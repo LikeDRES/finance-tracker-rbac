@@ -60,6 +60,7 @@ model Account {
   accessToken  String?
   refreshToken String?
   expiresAt    DateTime?
+  scope        String?  //(GitHub envía scope)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -79,4 +80,16 @@ model Session {
   userAgent  String?                  // ← Opcional, pero Better Auth lo envía
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now()) 
+  updatedAt  DateTime @updatedAt        
+
+  @@unique([identifier, value])
+  @@index([expiresAt])
 }

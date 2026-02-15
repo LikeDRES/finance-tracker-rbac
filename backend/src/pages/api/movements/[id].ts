@@ -98,6 +98,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Headers CORS
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Manejar preflight OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Verificar autenticación
   const session = await getServerSession(req);
   if (!session) {
@@ -106,18 +117,17 @@ export default async function handler(
 
   const { id } = req.query;
   const userRole = session.user.role;
+  const userId = session.user.id;
 
-  // Validar que el ID existe y es string
   if (typeof id !== "string") {
     return res.status(400).json({ error: "ID inválido" });
   }
 
   // =========================
-  // PUT /api/movements/[id] (solo ADMIN)
+  // PUT /api/movements/[id]
   // =========================
   if (req.method === "PUT") {
     try {
-      // Verificar rol de ADMIN
       if (userRole !== "ADMIN") {
         return res.status(403).json({ 
           error: "FORBIDDEN",
@@ -125,7 +135,6 @@ export default async function handler(
         });
       }
 
-      // Verificar que el movimiento existe
       const existingMovement = await prisma.movement.findUnique({
         where: { id },
       });
@@ -134,7 +143,6 @@ export default async function handler(
         return res.status(404).json({ error: "Movimiento no encontrado" });
       }
 
-      // Parsear el body si viene como string
       let body = req.body;
       if (typeof body === "string") {
         try {
@@ -144,10 +152,8 @@ export default async function handler(
         }
       }
 
-      // Validar datos de entrada
       const validatedData = updateMovementSchema.parse(body);
 
-      // Actualizar movimiento
       const updatedMovement = await prisma.movement.update({
         where: { id },
         data: validatedData,
@@ -177,39 +183,36 @@ export default async function handler(
   }
 
   // =========================
-  // DELETE /api/movements/[id] (solo ADMIN)
+  // DELETE /api/movements/[id]
   // =========================
-if (req.method === "DELETE") {
-  try {
-    // Verificar rol de ADMIN
-    if (userRole !== "ADMIN") {
-      return res.status(403).json({ 
-        error: "FORBIDDEN",
-        message: "Solo los administradores pueden eliminar movimientos" 
+  if (req.method === "DELETE") {
+    try {
+      if (userRole !== "ADMIN") {
+        return res.status(403).json({ 
+          error: "FORBIDDEN",
+          message: "Solo los administradores pueden eliminar movimientos" 
+        });
+      }
+
+      const existingMovement = await prisma.movement.findUnique({
+        where: { id },
       });
+
+      if (!existingMovement) {
+        return res.status(404).json({ error: "Movimiento no encontrado" });
+      }
+
+      await prisma.movement.delete({
+        where: { id },
+      });
+
+      return res.status(204).end();
+
+    } catch (error) {
+      console.error("Error en DELETE /movements/[id]:", error);
+      return res.status(500).json({ error: "Error al eliminar movimiento" });
     }
-
-    // Verificar que el movimiento existe
-    const existingMovement = await prisma.movement.findUnique({
-      where: { id },
-    });
-
-    if (!existingMovement) {
-      return res.status(404).json({ error: "Movimiento no encontrado" });
-    }
-
-    // Eliminar movimiento
-    await prisma.movement.delete({
-      where: { id },
-    });
-
-    // 204 No Content es lo estándar para DELETE exitoso
-    return res.status(204).end();
-
-  } catch (error) {
-    console.error("Error en DELETE /movements/[id]:", error);
-    return res.status(500).json({ error: "Error al eliminar movimiento" });
   }
-}
+
   return res.status(405).json({ error: "Método no permitido" });
 }

@@ -23,10 +23,10 @@ export const createMovementSchema = z.object({
   type: z.enum([MovementType.INCOME, MovementType.EXPENSE]),
 });
 
-// Esquema para actualizar un movimiento (sin id)
+// Esquema para actualizar un movimiento
 export const updateMovementSchema = createMovementSchema.partial();
 
-// Esquema para parámetros de consulta (GET)
+// Esquema para parámetros de consulta (GET) - VERSIÓN CORREGIDA
 export const queryMovementsSchema = z.object({
   page: z.string().optional().default("1").transform(Number).pipe(z.number().min(1)),
   limit: z.string().optional().default("10").transform(Number).pipe(z.number().min(1).max(100)),
@@ -34,6 +34,7 @@ export const queryMovementsSchema = z.object({
   endDate: z.string().optional().transform((str) => str ? new Date(str) : undefined),
   type: z.enum([MovementType.INCOME, MovementType.EXPENSE]).optional(),
   userId: z.string().cuid().optional(),
+  search: z.string().optional(), // ← AGREGADO para búsqueda por concepto
 });
 
 // Tipos inferidos

@@ -2,14 +2,22 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { auth } from "@/lib/auth";
 import { signUpSchema } from "@/validations/auth";
 import { z } from "zod";
+import { runCors } from "@/lib/cors";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Aplicar CORS
+  if (runCors(req, res)) return;
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  // Agregar headers CORS explícitamente
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   try {
     // Validar datos de entrada

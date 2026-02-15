@@ -187,7 +187,6 @@ import { z } from "zod";
  *                   example: Error al actualizar usuario
  */
 
-// Schema para actualizar usuario
 const updateUserSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(50).optional(),
   phone: z.string().regex(/^\+?[\d\s-]+$/, "Teléfono inválido").optional().nullable(),
@@ -198,13 +197,21 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Verificar autenticación
+  // 🔥 HEADERS CORS
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const session = await getServerSession(req);
   if (!session) {
     return res.status(401).json({ error: "No autorizado" });
   }
 
-  // Verificar rol de ADMIN
   if (session.user.role !== "ADMIN") {
     return res.status(403).json({ 
       error: "FORBIDDEN",
@@ -214,17 +221,12 @@ export default async function handler(
 
   const { id } = req.query;
 
-  // Validar que el ID existe y es string
   if (typeof id !== "string") {
     return res.status(400).json({ error: "ID inválido" });
   }
 
-  // =========================
-  // PUT /api/users/[id]
-  // =========================
   if (req.method === "PUT") {
     try {
-      // Verificar que el usuario existe
       const existingUser = await prisma.user.findUnique({
         where: { id },
       });
@@ -233,7 +235,6 @@ export default async function handler(
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
 
-      // Parsear body si viene como string
       let body = req.body;
       if (typeof body === "string") {
         try {
@@ -243,10 +244,8 @@ export default async function handler(
         }
       }
 
-      // Validar datos de entrada
       const validatedData = updateUserSchema.parse(body);
 
-      // Actualizar usuario
       const updatedUser = await prisma.user.update({
         where: { id },
         data: validatedData,

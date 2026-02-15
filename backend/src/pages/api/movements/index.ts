@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "@/lib/auth/getServerSession";
 import { z } from "zod";
-import { createMovementSchema } from "@/validations/movement"; 
-
+import { createMovementSchema } from "@/validations/movement";
 /**
  * @swagger
  * /api/movements:
@@ -149,14 +148,27 @@ const querySchema = z.object({
   startDate: z.string().optional().transform(str => str ? new Date(str) : undefined),
   endDate: z.string().optional().transform(str => str ? new Date(str) : undefined),
   userId: z.string().cuid().optional(),
+  search: z.string().optional(),
 });
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Headers CORS
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Manejar preflight OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Verificar autenticación
   const session = await getServerSession(req);
+  
   if (!session) {
     return res.status(401).json({ error: "No autorizado" });
   }
@@ -175,24 +187,31 @@ export default async function handler(
       // Construir filtros
       const where: any = {};
 
-      // Filtro por usuario (ADMIN puede ver todos, USER solo los suyos)
+      // Filtro por usuario
       if (userRole !== "ADMIN") {
         where.userId = userId;
       } else if (query.userId) {
-        // ADMIN puede filtrar por usuario específico
         where.userId = query.userId;
       }
 
-      // Filtro por tipo
+      // Filtrar por tipo (solo si existe)
       if (query.type) {
         where.type = query.type;
       }
 
-      // Filtro por rango de fechas
+      //  Filtrar por rango de fechas
       if (query.startDate || query.endDate) {
         where.date = {};
         if (query.startDate) where.date.gte = query.startDate;
         if (query.endDate) where.date.lte = query.endDate;
+      }
+
+      // Búsqueda por concepto
+      if (query.search && query.search.trim() !== "") {
+        where.concept = {
+          contains: query.search,
+          mode: 'insensitive',
+        };
       }
 
       // Calcular total de registros
@@ -231,11 +250,10 @@ export default async function handler(
   }
 
   // =========================
-  // POST /api/movements (solo ADMIN) - CORREGIDO
+  // POST /api/movements
   // =========================
   if (req.method === "POST") {
     try {
-      // Verificar rol de ADMIN
       if (userRole !== "ADMIN") {
         return res.status(403).json({ 
           error: "FORBIDDEN",
@@ -243,10 +261,8 @@ export default async function handler(
         });
       }
 
-      // USAR EL SCHEMA IMPORTADO en lugar del local
       const validatedData = createMovementSchema.parse(req.body);
 
-      // Crear movimiento
       const movement = await prisma.movement.create({
         data: {
           amount: validatedData.amount,
