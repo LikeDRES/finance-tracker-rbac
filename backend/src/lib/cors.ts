@@ -4,12 +4,12 @@ export function runCors(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin
   
   // Lista de orígenes permitidos (incluye la URL exacta del frontend)
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://finance-tracker-rbac-vjdu-ppyt3rv01-likedres-projects.vercel.app',
-    process.env.FRONTEND_URL,
-  ].filter(Boolean) as string[]
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://finance-tracker-rbac-vjdu.vercel.app', // ← URL exacta
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[]
 
   console.log("🌐 CORS - Origin recibido:", origin)
   console.log("🌐 CORS - Orígenes permitidos:", allowedOrigins)

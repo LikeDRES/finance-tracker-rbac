@@ -23,20 +23,19 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_BASE_URL,
   
-trustedOrigins: [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:3001",
-  process.env.FRONTEND_URL!,
-  ...(process.env.NODE_ENV === "production" ? [process.env.FRONTEND_URL!] : [])
-].filter(Boolean),
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://finance-tracker-rbac-vjdu.vercel.app",
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ],
 
   cors: {
     origin: [
       "http://localhost:3000", 
       "http://localhost:3001",
-      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []) // ← Solo si existe
+      "https://finance-tracker-rbac-vjdu.vercel.app",
+      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

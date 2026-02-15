@@ -11,7 +11,7 @@
       "src": "/api/auth/(.*)",
       "dest": "/pages/api/auth/[...all].ts",
       "headers": {
-        "Access-Control-Allow-Origin": "https://finance-tracker-rbac-vjdu-ppyt3rv01-likedres-projects.vercel.app",
+        "Access-Control-Allow-Origin": "https://finance-tracker-rbac-vjdu.vercel.app",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, Origin, Accept"
