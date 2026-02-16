@@ -5,18 +5,47 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Github } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const { user, isLoading, signIn } = useAuth()
+  const { user, isLoading } = useAuth()
   const router = useRouter()
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
 
   useEffect(() => {
     if (user) {
       router.push("/movements")
     }
   }, [user, router])
+
+  const handleGithubLogin = async () => {
+  try {
+    setIsLoggingIn(true)
+    
+    const response = await fetch('/api/auth/sign-in/social', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        provider: 'github',
+        callbackURL: '/movements',
+      }),
+      credentials: 'include',
+    })
+    
+    const data = await response.json()
+    console.log('Respuesta:', data)
+    
+    if (data.url) {
+      window.location.href = data.url
+    }
+  } catch (error) {
+    console.error('Error:', error)
+    setIsLoggingIn(false)
+  }
+}
 
   if (isLoading) {
     return (
@@ -39,13 +68,18 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={signIn}
+          <Button
+            onClick={handleGithubLogin}
+            disabled={isLoggingIn}
             className="w-full"
             size="lg"
           >
-            <Github className="mr-2 h-5 w-5" />
-            Continuar con GitHub
+            {isLoggingIn ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+            ) : (
+              <Github className="mr-2 h-5 w-5" />
+            )}
+            {isLoggingIn ? "Redirigiendo a GitHub..." : "Continuar con GitHub"}
           </Button>
         </CardContent>
       </Card>

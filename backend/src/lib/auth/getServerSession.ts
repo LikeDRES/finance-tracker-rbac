@@ -1,6 +1,4 @@
-// src/lib/auth/getServerSession.ts
-
-import { getAuth } from "./auth"
+import { auth } from "./auth"
 import type { NextApiRequest } from "next"
 import type { Role } from "@prisma/client"
 
@@ -42,8 +40,7 @@ export async function getServerSession(
       }, {} as Record<string, string>)
     )
 
-    const session = await getAuth().api.getSession({ headers })
-
+    const session = await auth.api.getSession({ headers })
     return session as Session | null
   } catch (error) {
     console.error("Error getting session:", error)

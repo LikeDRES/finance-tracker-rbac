@@ -28,15 +28,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
+  // 🔹 Función para verificar sesión usando fetch con credentials
   const checkSession = useCallback(async () => {
+    setIsLoading(true)
     try {
-      const { data } = await authClient.getSession()
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`, {
+        credentials: "include", // <- Muy importante para cookies
+      })
+
+      if (!res.ok) throw new Error("Failed to fetch session")
+
+      const data = await res.json()
 
       if (data?.user) {
-        const userWithRole = data.user as typeof data.user & {
-          role: "ADMIN" | "USER"
-        }
-
+        const userWithRole = data.user as typeof data.user & { role: "ADMIN" | "USER" }
         setUser({
           id: userWithRole.id,
           name: userWithRole.name,
@@ -59,13 +64,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession()
   }, [checkSession])
 
+  // 🔹 Redirección al login con GitHub (OAuth)
   const signIn = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-in/github`
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-in?provider=github`
   }
 
+  // 🔹 Cierre de sesión con fetch + credentials
   const signOut = async () => {
     try {
-      await authClient.signOut()
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-out`, {
+        method: "POST",
+        credentials: "include",
+      })
       setUser(null)
       toast.success("Sesión cerrada correctamente")
       router.push("/login")
@@ -77,7 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const refreshSession = async () => {
-    setIsLoading(true)
     await checkSession()
   }
 

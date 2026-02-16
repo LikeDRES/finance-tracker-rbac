@@ -1,6 +1,7 @@
+// backend/next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ... otras configuraciones
+  // Aquí puedes añadir configuraciones adicionales si las necesitas
 }
 
-module.exports = nextConfig
+module.exports = nextConfig 

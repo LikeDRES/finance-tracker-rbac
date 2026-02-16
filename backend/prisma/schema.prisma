@@ -6,32 +6,21 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-enum Role {
-  ADMIN
-  USER
-}
-
-enum MovementType {
-  INCOME
-  EXPENSE
-}
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
+  email         String     @unique
   phone         String?
-  role          Role      @default(ADMIN)  // ← Cambiado de USER a ADMIN
-
+  role          Role       @default(ADMIN)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  emailVerified Boolean    @default(false)
+  image         String?
   accounts      Account[]
-  sessions      Session[]
   movements     Movement[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
 }
-
 
 model Movement {
   id        String       @id @default(cuid())
@@ -40,55 +29,75 @@ model Movement {
   date      DateTime
   type      MovementType
   userId    String
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
 }
 
-
 model Account {
-  id           String   @id @default(cuid())
-  accountId    String
-  providerId   String
+  id           String    @id @default(cuid())
   userId       String
   type         String?
-  password     String?
   accessToken  String?
-  refreshToken String?
+  accountId    String
+  createdAt    DateTime  @default(now())
   expiresAt    DateTime?
-  scope        String?  //(GitHub envía scope)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  password     String?
+  providerId   String
+  refreshToken String?
+  updatedAt    DateTime  @updatedAt
+  scope        String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
 }
 
 model Session {
-  id         String   @id @default(cuid())
-  token      String   @unique        // ← Cambiado de sessionToken a token
-  userId     String
-  expiresAt  DateTime                 // ← Cambiado de expires a expiresAt
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  ipAddress  String?                  // ← Opcional, pero Better Auth lo envía
-  userAgent  String?                  // ← Opcional, pero Better Auth lo envía
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  ipAddress String?
+  token     String   @unique
+  updatedAt DateTime @updatedAt
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Agrega este modelo después de VerificationToken
 model Verification {
   id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime @default(now()) 
-  updatedAt  DateTime @updatedAt        
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([identifier, value])
   @@index([expiresAt])
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
+  @@index([expiresAt])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum MovementType {
+  INCOME
+  EXPENSE
 }
