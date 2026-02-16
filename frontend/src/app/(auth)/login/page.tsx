@@ -23,7 +23,7 @@ export default function LoginPage() {
   try {
     setIsLoggingIn(true)
     
-    const response = await fetch('api/auth/signin/social', {
+    const response = await fetch('api/auth/sign-in/social', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
