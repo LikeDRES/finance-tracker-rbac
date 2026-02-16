@@ -1,9 +1,7 @@
-"use client"
-
+/// context/AuthContext.tsx
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/router"
 import { toast } from "sonner"
-import { authClient } from "@/lib/auth-client"
 
 interface User {
   id: string
@@ -28,12 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // 🔹 Función para verificar sesión usando fetch con credentials
+  // Función para verificar sesión usando fetch con credentials
   const checkSession = useCallback(async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`, {
-        credentials: "include", // <- Muy importante para cookies
+      // ✅ Usar ruta relativa
+      const res = await fetch('/api/auth/get-session', {
+        credentials: "include",
       })
 
       if (!res.ok) throw new Error("Failed to fetch session")
@@ -64,22 +63,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession()
   }, [checkSession])
 
-  // 🔹 Redirección al login con GitHub (OAuth)
+  // ✅ Redirección al login con GitHub - Ruta corregida
   const signIn = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-in?provider=github`
+    window.location.href = '/api/auth/signin/social?provider=github'
   }
 
-  // 🔹 Cierre de sesión con fetch + credentials
+  // ✅ Cierre de sesión
   const signOut = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign-out`, {
+      await fetch('/api/auth/sign-out', {
         method: "POST",
         credentials: "include",
       })
       setUser(null)
       toast.success("Sesión cerrada correctamente")
       router.push("/login")
-      router.refresh()
     } catch (error) {
       console.error("Error signing out:", error)
       toast.error("Error al cerrar sesión")

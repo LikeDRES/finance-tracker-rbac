@@ -5,7 +5,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*',
+        destination: 'https://finance-tracker-rbac.vercel.app/api/:path*',
       },
     ]
   },
