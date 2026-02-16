@@ -1,6 +1,6 @@
-/// context/AuthContext.tsx
+// frontend/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/router"
+import { useRouter } from "next/router" // ✅ Cambiar a next/router
 import { toast } from "sonner"
 
 interface User {
@@ -26,11 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Función para verificar sesión usando fetch con credentials
   const checkSession = useCallback(async () => {
     setIsLoading(true)
     try {
-      // ✅ Usar ruta relativa
       const res = await fetch('/api/auth/get-session', {
         credentials: "include",
       })
@@ -40,13 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json()
 
       if (data?.user) {
-        const userWithRole = data.user as typeof data.user & { role: "ADMIN" | "USER" }
         setUser({
-          id: userWithRole.id,
-          name: userWithRole.name,
-          email: userWithRole.email,
-          image: userWithRole.image ?? null,
-          role: userWithRole.role,
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          image: data.user.image ?? null,
+          role: data.user.role,
         })
       } else {
         setUser(null)
@@ -63,12 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession()
   }, [checkSession])
 
-  // ✅ Redirección al login con GitHub - Ruta corregida
   const signIn = () => {
     window.location.href = '/api/auth/signin/social?provider=github'
   }
 
-  // ✅ Cierre de sesión
   const signOut = async () => {
     try {
       await fetch('/api/auth/sign-out', {
